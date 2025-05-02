@@ -1,9 +1,7 @@
-import re
 from typing import Tuple
 from natorch.nn import parameter
 import numpy as np
 import math
-from parameter import Parameter
 
 def zeros_(param : Parameter) -> Parameter:
     _check_param(param)
