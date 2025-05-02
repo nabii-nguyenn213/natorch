@@ -38,7 +38,7 @@ def xavier_normal_(param : Parameter, gain : float = 1.0) -> Parameter:
     param.data[...] = np.random.normal(0,0, std, size=shape)
     return param
 
-def He_uniform_(param : Parameter, mode :str = 'fan_in', nonlinearity : str = 'relu') -> Parameter:
+def kaiming_uniform_(param : Parameter, mode :str = 'fan_in', nonlinearity : str = 'relu') -> Parameter:
     _check_param(param)
     mode = mode.lower()
     if mode not in ['fan_in', 'fan_out']:
@@ -54,7 +54,7 @@ def He_uniform_(param : Parameter, mode :str = 'fan_in', nonlinearity : str = 'r
     param.data[...] = np.random.uniform(-bound, bound, size=shape).astype(param.dtype)
     return param
 
-def He_normal_(param : Parameter, mode : str = 'fan_in', nonlinearity : str = 'relu', negative_slope : float = 0.0) -> Parameter:
+def kaiming_normal_(param : Parameter, mode : str = 'fan_in', nonlinearity : str = 'relu', negative_slope : float = 0.0) -> Parameter:
     _check_param(param)
     mode = mode.lower()
     if mode not in ['fan_in', 'fan_out']:
