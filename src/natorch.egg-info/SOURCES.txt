@@ -1,0 +1,13 @@
+README.md
+setup.py
+src/natorch/__init__.py
+src/natorch.egg-info/PKG-INFO
+src/natorch.egg-info/SOURCES.txt
+src/natorch.egg-info/dependency_links.txt
+src/natorch.egg-info/top_level.txt
+src/natorch/nn/__init__.py
+src/natorch/nn/functional.py
+src/natorch/nn/init.py
+src/natorch/nn/parameter.py
+src/natorch/nn/modules/__init__.py
+src/natorch/nn/modules/module.py

@@ -7,7 +7,7 @@ class Parameter:
         self.data = np.empty(shape, dtype=dtype)
         self.requires_grad = requires_grad
         self.dtype = dtype
-        self.grad = np.zeros_like(data) if requires_grad else None
+        self.grad = np.zeros_like(self.data) if requires_grad else None
 
     def zero_grad(self):
         if self.requires_grad and self.grad is not None:
