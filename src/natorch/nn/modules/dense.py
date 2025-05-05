@@ -20,8 +20,8 @@ class Dense(Module) :
             raise ValueError(f"Dense's Dimension must be positive integer.")
 
     def initialize_params(self):
-        weights = Parameter(shape=(self.dim_in, self.dim_out))
-        bias = Parameter(shape=(self.dim_out, ))
+        weights = Parameter(shape=(self.dim_in, self.dim_out), requires_grad=True)
+        bias = Parameter(shape=(self.dim_out, ), requires_grad=True)
 
         # Initialization
         if self.initialization is None or self.initialization == 'random': 

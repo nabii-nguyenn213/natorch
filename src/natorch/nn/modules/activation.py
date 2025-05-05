@@ -5,6 +5,7 @@ class ReLU(Module):
 
     def __init__(self):
         super().__init__()
+        self.name = 'relu'
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         mask = x > 0
@@ -20,6 +21,7 @@ class Sigmoid(Module):
 
     def __init__(self):
         super().__init__()
+        self.name = 'sigmoid'
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         y = 1.0 / (1.0 + np.exp(-x))
@@ -34,6 +36,7 @@ class Tanh(Module):
     
     def __init__(self):
         super().__init__()
+        self.name = 'tanh'
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         y = np.tanh(x)
@@ -49,6 +52,7 @@ class LeakyReLU(Module):
     def __init__(self, negative_slope: float = 0.01):
         super().__init__()
         self.negative_slope = negative_slope
+        self.name = 'leakyrelu'
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self._caches['input'] = x
@@ -64,6 +68,7 @@ class Softmax(Module):
     def __init__(self, dim: int = -1):
         super().__init__()
         self.dim = dim
+        self.name = 'softmax'
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         shift = x - np.max(x, axis=self.dim, keepdims=True)
