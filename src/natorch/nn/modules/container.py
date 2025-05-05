@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 from natorch.nn.modules import Module
 # layers : 
 from natorch.nn.modules import Dense, AvgPool2d, Conv2d, MaxPool2d, BatchNorm2d
@@ -18,6 +19,13 @@ class Sequential(Module):
 
     def __len__(self):
         return len(self._layers)
+
+    def _parameter(self) -> List: 
+        params = []
+        for i in self._layers: 
+            if i._parameters != {}:
+                params.append(i._parameters)
+        return params
 
     def forward(self, x):
         if self._layers == []:

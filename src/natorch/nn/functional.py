@@ -140,16 +140,22 @@ def binary_cross_entropy(input_: np.ndarray, target: np.ndarray, eps: float = 1e
     input_ = np.clip(input_, eps, 1 - eps)
     return -np.mean(target * np.log(input_) + (1 - target) * np.log(1 - input_))
 
-def cross_entropy_loss(input_ : np.ndarray, target : np.ndarray):
+def cross_entropy_loss(input_: np.ndarray, target: np.ndarray):
     if input_.ndim == 1:
         input_ = input_[np.newaxis, :]
     N, C = input_.shape
-    x_max = np.max(input_, axis=1, keepdims=True)
-    logits = input_ - x_max                     
-    exp_logits = np.exp(logits)                
-    sum_exp = np.sum(exp_logits, axis=1, keepdims=True)
-    log_probs = logits - np.log(sum_exp)              
-    losses = -log_probs[np.arange(N), target]        
+
+    x_max    = np.max(input_, axis=1, keepdims=True)
+    logits   = input_ - x_max
+    exp_logits = np.exp(logits)
+    sum_exp    = np.sum(exp_logits, axis=1, keepdims=True)
+    log_probs  = logits - np.log(sum_exp)       
+
+    if target.ndim == 1:
+        losses = -log_probs[np.arange(N), target]
+    else:
+        losses = -np.sum(target * log_probs, axis=1)
+
     return np.mean(losses)
 
 def cross_entropy_gradient(input_: np.ndarray, target: np.ndarray) -> np.ndarray:
@@ -157,15 +163,23 @@ def cross_entropy_gradient(input_: np.ndarray, target: np.ndarray) -> np.ndarray
     if input_.ndim == 1:
         input_ = input_[np.newaxis, :]
         squeeze = True
+
     N, C = input_.shape
-    x_max = np.max(input_, axis=1, keepdims=True)
-    logits = input_ - x_max
+
+    x_max     = np.max(input_, axis=1, keepdims=True)
+    logits    = input_ - x_max
     exp_logits = np.exp(logits)
-    sum_exp = np.sum(exp_logits, axis=1, keepdims=True)
-    probs = exp_logits / sum_exp  # softmax probabilities
-    grad = probs.copy()
-    grad[np.arange(N), target] -= 1
+    sum_exp    = np.sum(exp_logits, axis=1, keepdims=True)
+    probs      = exp_logits / sum_exp       # (N, C)
+
+    if target.ndim == 1:
+        grad = probs.copy()
+        grad[np.arange(N), target] -= 1
+    else:
+        grad = probs - target
+
     grad /= N
+
     if squeeze:
-         return grad[0]
+        return grad[0]  
     return grad

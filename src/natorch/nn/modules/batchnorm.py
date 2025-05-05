@@ -1,3 +1,4 @@
+from math import gamma
 from re import A
 from types import NoneType
 import numpy as np
@@ -95,8 +96,9 @@ class BatchNorm2d(Module):
         super().__init__()
         self.eps = eps
         self.in_channels = in_channels
-        self.gamma = None
-        self.beta  = None
+        self.gamma, self.beta = self.initialize_params()
+        self._parameters['gamma'] = gamma
+        self._parameters['beta'] = beta
 
     def initialize_params(self):
         gamma = Parameter(shape=(self.in_channels, ), requires_grad=True)
@@ -110,6 +112,8 @@ class BatchNorm2d(Module):
     def forward(self, x):
         if self.gamma is None or self.beta is None:
             self.gamma, self.beta = self.initialize_params()
+            self._parameters['gamma'] = gamma
+            self._parameters['beta'] = beta
 
         self.input = x
         out, self.x_hat, self.mean, self.var = _batchnorm2d_forward(

@@ -24,9 +24,8 @@ class Module:
     def initialize_params(self):
         raise NotImplementedError("Each Module must implement initialize_params()")
 
-    def parameters(self) -> Iterator[Parameter]:
-        for param in self._parameters.values():
-            yield param
+    def parameters(self):
+        return self._parameters
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError("Each Module must implement forward()")

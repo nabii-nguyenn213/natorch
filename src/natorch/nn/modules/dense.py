@@ -12,6 +12,9 @@ class Dense(Module) :
         super().__init__(dim_in, dim_out, initialization)
         self.nonlinearity = 'linear'
         self._check_dim()
+        self.weights, self.bias = self.initialize_params()
+        self._parameters['weights'] = self.weights
+        self._parameters['bias'] = self.bias
 
     def _check_dim(self):
         if not isinstance(self.dim_in, int) or not isinstance(self.dim_out, int):
@@ -56,27 +59,20 @@ class Dense(Module) :
         '''
         if not hasattr(self, 'weights') or not hasattr(self, 'bias'):
             self.weights, self.bias = self.initialize_params()
+            self._parameters['weights'] = self.weights
+            self._parameters['bias'] = self.bias
 
         self._caches['input'] = x
         linear_comb = x @ self.weights.data + self.bias.data
-
-        self._caches['output'] = linear_comb
         return linear_comb
 
     def backward(self, grad_out):
-        """
-        Parameter : 
-            grad_out: dL/dy, shape (D_o,)
-        ---
-        Return : 
-            dL/dx, shape (D_i,)
-        """
-        x = self._caches['input']
+        x = self._caches['input']    
         
-        grad_w = np.outer(x, grad_out)
+        grad_w = x.T @ grad_out       
         self.weights.grad += grad_w
 
-        self.bias.grad += grad_out
-
+        self.bias.grad += np.sum(grad_out, axis=0)
         grad_input = grad_out @ self.weights.data.T
+
         return grad_input

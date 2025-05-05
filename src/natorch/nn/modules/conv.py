@@ -108,6 +108,9 @@ class Conv2d(Module):
         self.stride = stride
         self.padding = padding
         self.nonlinearity = 'linear'
+        self.weights, self.bias = self.initialize_params()
+        self._parameters['weights'] = self.weights
+        self._parameters['bias'] = self.bias
 
     def initialize_params(self):
         weights = Parameter(shape=(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size), requires_grad=True)
@@ -142,6 +145,8 @@ class Conv2d(Module):
         '''
         if not hasattr(self, 'weights') or not hasattr(self, 'bias'):
             self.weights, self.bias = self.initialize_params()
+            self._parameters['weights'] = self.weights
+            self._parameters['bias'] = self.bias
         self._caches['input'] = x
         return _conv2d_forward_numba(x=x, weight=self.weights.data, bias=self.bias.data, stride = self.stride, padding=self.padding, kernel_size=self.kernel_size, 
                                      in_channels=self.in_channels, out_channels=self.out_channels)
