@@ -133,12 +133,6 @@ def dropout(x: np.ndarray, p: float = 0.5, training: bool = True) -> np.ndarray:
     mask = (np.random.rand(*x.shape) > p).astype(x.dtype)
     return x * mask / (1.0 - p)
 
-def one_hot(x: np.ndarray, num_classes: int) -> np.ndarray:
-    flat = x.ravel().astype(int)
-    eye = np.eye(num_classes, dtype=x.dtype)
-    oh = eye[flat]                              
-    return oh.reshape(*x.shape, num_classes)
-
 def mse_loss(input_: np.ndarray, target: np.ndarray) -> float:
     return np.mean((input_ - target) ** 2)
 
