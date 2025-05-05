@@ -18,6 +18,12 @@ def constants_(param : Parameter, val : float) -> Parameter:
     param.data[...] = val
     return param
 
+def random_(param : Parameter) -> Parameter:
+    _check_param(param)
+    shape = param.data.shape
+    param.data[...] = np.random.rand(*shape)
+    return param
+
 def xavier_uniform_(param : Parameter, gain : float = 1.0) -> Parameter:
     _check_param(param)
     shape = param.data.shape

@@ -2,7 +2,7 @@ import numpy as np
 from natorch.nn.parameter import Parameter
 from natorch.nn.modules.module import Module
 from natorch.nn.init import kaiming_normal_, kaiming_uniform_
-from natorch.nn.init import constants_, ones_, zeros_
+from natorch.nn.init import constants_, ones_, zeros_, random_
 from natorch.nn.init import xavier_normal_, xavier_uniform_
 from natorch.nn.init import _calculate_gain, _calculate_fans, _check_param
 
@@ -25,7 +25,7 @@ class Dense(Module) :
 
         # Initialization
         if self.initialization is None or self.initialization == 'random': 
-            weights = np.random.rand(weights.data.shape[0], weights.data.shape[1])
+            weighst = random_(param=weights)
         elif self.initialization == 'xavier_normal':
             gain = _calculate_gain(nonlinearity=self.nonlinearity)
             weights = xavier_normal_(param=weights, gain=gain)

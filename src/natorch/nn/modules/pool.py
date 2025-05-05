@@ -117,4 +117,7 @@ class AvgPool2d(Module):
         return _avgpool2d_forward(x, self.kernel_size, self.stride)
 
     def backward(self, grad_out):
+        if grad_out is None:
+            raise ValueError("avgpool2d_backward: received grad_out=None; "
+                         "you must pass in an ndarray of shape (N,C,H,W)")
         return _avgpool2d_backward(self._caches['input'], grad_out, self.kernel_size, self.stride)

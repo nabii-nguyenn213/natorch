@@ -5,7 +5,7 @@ from natorch.nn.parameter import Parameter
 from natorch.nn.modules.module import Module
 from natorch.nn.init import kaiming_normal_, kaiming_uniform_
 from natorch.nn.init import constants_, ones_, zeros_
-from natorch.nn.init import xavier_normal_, xavier_uniform_
+from natorch.nn.init import xavier_normal_, xavier_uniform_, random_
 from natorch.nn.init import _calculate_gain, _calculate_fans, _check_param
 
 @njit(parallel=True)
@@ -48,6 +48,56 @@ def _conv2d_forward_numba(x, weight, bias, stride, padding, kernel_size, in_chan
 
     return out
 
+@njit(parallel=True)
+def _conv2d_backward_numba(x, weight, grad_out,
+                           stride, padding,
+                           kernel_size, in_channels, out_channels):
+    B, C_in, H, W = x.shape
+    C_out, _, K, _ = weight.shape
+    S, P = stride, padding
+
+    # pad input
+    H_p = H + 2*P
+    W_p = W + 2*P
+    x_padded = np.zeros((B, C_in, H_p, W_p), dtype=x.dtype)
+    for b in prange(B):
+        for c in range(C_in):
+            for i in range(H):
+                for j in range(W):
+                    x_padded[b, c, i+P, j+P] = x[b, c, i, j]
+
+    # output spatial
+    H_out = (H_p - K)//S + 1
+    W_out = (W_p - K)//S + 1
+
+    # grads
+    grad_input_padded = np.zeros_like(x_padded)
+    grad_weight       = np.zeros_like(weight)
+    grad_bias         = np.zeros((C_out,), dtype=x.dtype)
+
+    # accumulate
+    for b in prange(B):
+        for oc in range(C_out):
+            for i in range(H_out):
+                for j in range(W_out):
+                    g = grad_out[b, oc, i, j]
+                    grad_bias[oc] += g
+                    h0 = i * S
+                    w0 = j * S
+                    # grad wrt weight and input
+                    for ic in range(C_in):
+                        for di in range(K):
+                            for dj in range(K):
+                                x_val = x_padded[b, ic, h0+di, w0+dj]
+                                grad_weight[oc, ic, di, dj] += x_val * g
+                                grad_input_padded[b, ic, h0+di, w0+dj] += weight[oc, ic, di, dj] * g
+
+    # unpad input gradient
+    grad_input = grad_input_padded[:, :,
+                                   P:P+H,
+                                   P:P+W]
+    return grad_input, grad_weight, grad_bias
+
 class Conv2d(Module):
     
     def __init__(self, in_channels : int, out_channels : int, kernel_size : int, stride : int = 1, padding : int = 0, initialization =None):
@@ -64,7 +114,7 @@ class Conv2d(Module):
         bias = Parameter(shape = (self.out_channels, ), requires_grad=True)
         
         if self.initialization is None or self.initialization == 'random':     
-            pass
+            weights = random_(param=weights)
         elif self.initialization == 'xavier_normal':
             gain = _calculate_gain(nonlinearity=self.nonlinearity)
             weights = xavier_normal_(param=weights, gain=gain)
@@ -92,46 +142,26 @@ class Conv2d(Module):
         '''
         if not hasattr(self, 'weights') or not hasattr(self, 'bias'):
             self.weights, self.bias = self.initialize_params()
-
+        self._caches['input'] = x
         return _conv2d_forward_numba(x=x, weight=self.weights.data, bias=self.bias.data, stride = self.stride, padding=self.padding, kernel_size=self.kernel_size, 
                                      in_channels=self.in_channels, out_channels=self.out_channels)
 
-    def forward_numpy(self, x):
-
-        if not hasattr(self, 'weights') or not hasattr(self, 'bias'):
-            self.weights, self.bias = self.initialize_params()
-
-        batch, _, H, W = x.shape
-        K, S, P = self.kernel_size, self.stride, self.padding
-
-        # Pad input
-        x_padded = np.pad(x,
-                          ((0,0), (0,0), (P,P), (P,P)),
-                          mode='constant', constant_values=0)
-
-        # Output spatial size
-        H_out = (H + 2*P - K) // S + 1
-        W_out = (W + 2*P - K) // S + 1
-
-        # Allocate output
-        out = np.zeros((batch, self.out_channels, H_out, W_out))
-
-        # Perform convolution
-        for b in range(batch):
-            for oc in range(self.out_channels):
-                for ic in range(self.in_channels):
-                    for i in range(H_out):
-                        for j in range(W_out):
-                            h_start = i * S
-                            w_start = j * S
-                            window = x_padded[b, ic,
-                                              h_start:h_start+K,
-                                              w_start:w_start+K]
-                            out[b, oc, i, j] += np.sum(
-                                window * self.weights.data[oc, ic])
-                out[b, oc] += self.bias.data[oc]
-
-        return out
-
     def backward(self, grad_out):
-        pass
+        grad_input, grad_weight, grad_bias = _conv2d_backward_numba(
+            self._caches['input'],
+            self.weights.data,
+            grad_out,
+            self.stride,
+            self.padding,
+            self.kernel_size,
+            self.in_channels,
+            self.out_channels
+        )
+        self.weights.grad = grad_weight
+        self.bias.grad    = grad_bias
+        return grad_input
+
+class ConvTranspose2d(Module):
+
+    def __init__(self):
+        super().__init__()
