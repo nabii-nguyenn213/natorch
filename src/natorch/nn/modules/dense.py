@@ -44,6 +44,11 @@ class Dense(Module) :
         bias = zeros_(param=bias)
 
         return weights, bias
+
+    def _update_params(self):
+        self._parameters['weights'] = self.weights
+        self._parameters['bias'] = self.bias
+
     
     def forward(self, x):
         '''

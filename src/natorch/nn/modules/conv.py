@@ -101,7 +101,7 @@ def _conv2d_backward_numba(x, weight, grad_out,
 class Conv2d(Module):
     
     def __init__(self, in_channels : int, out_channels : int, kernel_size : int, stride : int = 1, padding : int = 0, initialization =None):
-        super().__init__()
+        super().__init__(initialization=initialization)
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -133,6 +133,10 @@ class Conv2d(Module):
         bias = zeros_(param=bias)
 
         return weights, bias
+
+    def _update_params(self):
+        self._parameters['weights'] = self.weights
+        self._parameters['bias'] = self.bias
 
     def forward(self, x):
         '''

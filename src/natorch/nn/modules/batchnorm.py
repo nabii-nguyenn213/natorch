@@ -109,6 +109,11 @@ class BatchNorm2d(Module):
 
         return gamma, beta
 
+    def _update_params(self):
+        self._parameters['gamma'] = self.gamma
+        self._parameters['beta'] = self.beta
+
+
     def forward(self, x):
         if self.gamma is None or self.beta is None:
             self.gamma, self.beta = self.initialize_params()
