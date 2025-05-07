@@ -1,6 +1,6 @@
 from .modules import (
     Dense,
-    Conv2d,
+    Conv2d, ConvTranspose2d,
     BatchNorm2d,
     MaxPool2d, AvgPool2d,
     ReLU, Sigmoid, Tanh, LeakyReLU, Softmax,
@@ -11,7 +11,7 @@ from .modules import (
 
 __all__ = [
     "Dense",
-    "Conv2d",
+    "Conv2d", "ConvTranspose2d",
     "BatchNorm2d",
     "MaxPool2d", "AvgPool2d",
     "ReLU", "Sigmoid", "Tanh", "LeakyReLU", "Softmax",

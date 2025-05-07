@@ -39,9 +39,9 @@ def xavier_normal_(param : Parameter, gain : float = 1.0) -> Parameter:
     shape = param.data.shape
 
     fan_in, fan_out = _calculate_fans(shape)
-    std = gain * math.sqrt(2.0, (fan_in + fan_out))
+    std = gain * math.sqrt(2.0 / (fan_in + fan_out))
 
-    param.data[...] = np.random.normal(0,0, std, size=shape)
+    param.data[...] = np.random.normal(0.0, std, size=shape)
     return param
 
 def kaiming_uniform_(param : Parameter, mode :str = 'fan_in', nonlinearity : str = 'relu', negative_slope : float = 0.0) -> Parameter:

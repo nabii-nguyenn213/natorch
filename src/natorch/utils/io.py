@@ -62,8 +62,10 @@ def load_model(model,save_dir: str = None,file_name: str = None) -> None:
     # pick out only the layers that actually have weights
     layers_with_params = [
         layer for layer in model.net._layers
-        if hasattr(layer, 'weights') and isinstance(layer.weights, Parameter)
-           and hasattr(layer, 'bias') and isinstance(layer.bias, Parameter)
+        if (hasattr(layer, 'weights') and isinstance(layer.weights, Parameter)
+           and hasattr(layer, 'bias') and isinstance(layer.bias, Parameter)) or 
+        (hasattr(layer, 'gamma') and isinstance(layer.gamma, Parameter)
+           and hasattr(layer, 'beta') and isinstance(layer.beta, Parameter))
     ]
 
     if len(loaded) != len(layers_with_params):
@@ -72,6 +74,10 @@ def load_model(model,save_dir: str = None,file_name: str = None) -> None:
         )
 
     for layer, params in zip(layers_with_params, loaded):
+        if hasattr(layer, 'gamma') and hasattr(layer, 'beta'):
+            layer.gamma.data = params['gamma']
+            layer.beta.data = params['beta']
+            continue
         layer.weights.data = params['weights']
         layer.bias.data    = params['bias']
         # zero gradients

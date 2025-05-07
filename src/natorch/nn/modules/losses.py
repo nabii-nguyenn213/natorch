@@ -8,26 +8,26 @@ class MSELoss(Module):
         super().__init__()
 
     def forward(self, input: np.ndarray, target: np.ndarray) -> float:
-        self._cache['input'], self._cache['target'] = input, target
+        self._caches['input'], self._caches['target'] = input, target
         return mse_loss(input, target)
 
     def backward(self, grad_out: float = 1.0) -> np.ndarray:
-        inp, tgt = self._cache['input'], self._cache['target']
+        inp, tgt = self._caches['input'], self._caches['target']
         # derivative of mean((inp - tgt)^2) is 2*(inp - tgt)/N
         grad = 2 * (inp - tgt) / inp.size
         return grad * grad_out
 
 class BCELoss(Module):
 
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def forward(self, input: np.ndarray, target: np.ndarray) -> float:
-        self._cache['input'], self._cache['target'] = input, target
+        self._caches['input'], self._caches['target'] = input, target
         return binary_cross_entropy(input, target)
 
     def backward(self, grad_out: float = 1.0) -> np.ndarray:
-        inp, tgt = self._cache['input'], self._cache['target']
+        inp, tgt = self._caches['input'], self._caches['target']
         eps = 1e-12
         inp = np.clip(inp, eps, 1 - eps)
         grad = (-(tgt / inp) + (1 - tgt) / (1 - inp)) / inp.size
