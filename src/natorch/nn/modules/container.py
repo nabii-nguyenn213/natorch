@@ -29,6 +29,7 @@ class Sequential(Module):
         return params
 
     def _reinitialize_params(self) -> None:
+        print("Re-initialize parameters")
         activation_name = ["ReLU", "LeakyReLU", "Sigmoid", "Softmax", "Tanh",
                            "Conv2d", "ConvTranspose2d"]
 
@@ -54,7 +55,6 @@ class Sequential(Module):
                 else:
                     continue
                 
-                print("Re-initialize parameters")
                 self._layers[i].initialize_params()
                 self._layers[i]._update_params()
 
