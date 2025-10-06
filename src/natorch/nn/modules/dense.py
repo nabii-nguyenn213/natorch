@@ -73,8 +73,10 @@ class Dense(Module) :
 
     def backward(self, grad_out):
         x = self._caches['input']    
-        
-        grad_w = x.T @ grad_out       
+        if x.ndim == 1 and grad_out.ndim == 1: 
+            grad_w = x.reshape(-1, 1) @ grad_out.reshape(1, -1)
+        else:
+            grad_w = x.T @ grad_out       
         self.weights.grad += grad_w
 
         self.bias.grad += np.sum(grad_out, axis=0)

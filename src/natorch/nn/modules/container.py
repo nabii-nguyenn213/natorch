@@ -1,4 +1,6 @@
 import numpy as np
+from rich.console import Console
+from rich.table import Table
 from typing import List
 from natorch.nn.modules import Module
 # layers : 
@@ -14,6 +16,8 @@ class Sequential(Module):
         super().__init__()
         self._layers = list(layers) if layers else []
         self._reinitialize_params()
+        self._caches_input = []
+        self._caches_output = []
 
     def add(self, layer):
         self._layers.append(layer)
@@ -29,7 +33,7 @@ class Sequential(Module):
         return params
 
     def _reinitialize_params(self) -> None:
-        print("Re-initialize parameters")
+        # print("Re-initialize parameters")
         activation_name = ["ReLU", "LeakyReLU", "Sigmoid", "Softmax", "Tanh",
                            "Conv2d", "ConvTranspose2d"]
 
@@ -61,10 +65,11 @@ class Sequential(Module):
     def forward(self, x):
         if self._layers == []:
             return
-
         output = x
         for layer in self._layers:
+            self._caches_input.append(output)
             output = layer.forward(output)
+            self._caches_output.append(output)
         return output
 
     def backward(self, grad_out):
@@ -73,5 +78,49 @@ class Sequential(Module):
             grad = layer.backward(grad)
         return grad
 
-    def __repr__(self):
-        pass
+    def summary(self, input_shape=None):
+        if input_shape == None: 
+            raise ValueError("Required input shape")
+
+        random_sample = np.zeros(input_shape)
+        self.forward(random_sample)
+        
+        console = Console(force_terminal=True)
+        table = Table(title="Model Summary", title_style="bold_magenta")
+
+        table.add_column("Layer", style="cyan", no_wrap=True)
+        table.add_column("Input Shape", style='green')
+        table.add_column("Output shape", style='green')
+        
+        table.add_column("Activation Function", style="black")
+        table.add_column("Param #", style='yellow')
+
+        activation_function_name = ['ReLU', 'Sigmoid', 'Tanh', 'LeakyReLU', 'Softmax']
+
+        for idx_layer in range(len(self._layers)):
+            layer = self._layers[idx_layer]
+            layer_name = type(layer).__name__ # get current layer name
+            if layer_name in activation_function_name : 
+                continue
+            layer_input = self._caches_input[idx_layer].shape # get current layer input shape
+            layer_output = self._caches_output[idx_layer].shape # get current layer output shape
+            if idx_layer < len(self._layers)-1:
+                layer_activation = type(self._layers[idx_layer + 1]).__name__ # get activation name
+                layer_activation = layer_activation if layer_activation in activation_function_name else None
+
+            # Get the number of parameters
+            layer_params = 0
+            for v in layer._parameters.values(): 
+                layer_params += v.data.size
+
+            # assign in the table 
+
+            table.add_row(
+                    f"[bold]{layer_name}[/bold]", 
+                    f"[green]{layer_input}[/green]", 
+                    f"[green]{layer_output}[/green]", 
+                    f"[black]{layer_activation}[/black]", 
+                    f"[yellow]{layer_params}[/yellow]", 
+                    )
+
+        console.print(table)
